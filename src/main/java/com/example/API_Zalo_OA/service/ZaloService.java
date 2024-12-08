@@ -18,23 +18,32 @@ public class ZaloService {
     private String accessToken;
 
     public void processMessage(String requestBody) {
-        // Giả sử bạn đã có đoạn mã JSON yêu cầu
-        JSONObject jsonRequest = new JSONObject(requestBody);
+        try {
+            // Chuyển đổi requestBody thành JSONObject
+            JSONObject jsonRequest = new JSONObject(requestBody);
 
-        // Kiểm tra nếu người dùng nhắn tin với từ khóa "wifi"
-        String userMessage = jsonRequest.getString("message");
-        if (userMessage.equalsIgnoreCase("wifi")) {
-            // Sinh mã code ngẫu nhiên
-            String code = generateCode();
+            // Lấy tin nhắn từ người dùng
+            String userMessage = jsonRequest.optString("message", "").trim();
 
-            // Gửi mã code lại cho người dùng
-            sendMessageToUser(jsonRequest.getString("sender_id"), code);
+            // Kiểm tra nếu người dùng nhắn tin với từ khóa "wifi"
+            if ("wifi".equalsIgnoreCase(userMessage)) {
+                // Sinh mã code ngẫu nhiên
+                String code = generateCode();
+
+                // Gửi mã code lại cho người dùng
+                sendMessageToUser(jsonRequest.getString("sender_id"), code);
+            }
+        } catch (Exception e) {
+            // Log lỗi và thông báo nếu có lỗi trong quá trình xử lý
+            System.err.println("Error processing message: " + e.getMessage());
         }
     }
 
     private String generateCode() {
         return "CODE" + (int) (Math.random() * 10000);  // Sinh mã ngẫu nhiên
     }
+
+    private static final RestTemplate restTemplate = new RestTemplate();  // Để tái sử dụng
 
     private void sendMessageToUser(String userId, String message) {
         JSONObject jsonObject = new JSONObject();
@@ -47,7 +56,15 @@ public class ZaloService {
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<String> entity = new HttpEntity<>(jsonObject.toString(), headers);
 
-        RestTemplate restTemplate = new RestTemplate();
-        restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+        try {
+            // Gửi POST request và nhận phản hồi
+            String response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class).getBody();
+
+            // Log phản hồi từ Zalo OA (hoặc xử lý nếu cần)
+            System.out.println("Response from Zalo API: " + response);
+        } catch (Exception e) {
+            // Log lỗi nếu có vấn đề với việc gọi API Zalo
+            System.err.println("Error sending message to Zalo API: " + e.getMessage());
+        }
     }
 }

@@ -19,7 +19,7 @@ public class zaloController {
         this.zaloService = zaloService;
     }
 
-    @GetMapping
+    @PostMapping
     public ResponseEntity<String> verifyWebhook(@RequestParam(value = "challenge", required = true) String challenge) {
         // Đảm bảo trả về đúng giá trị của 'challenge' để Zalo OA xác thực webhook
         return ResponseEntity.ok(challenge);
@@ -27,13 +27,8 @@ public class zaloController {
 
     @PostMapping
     public ResponseEntity<String> handleIncomingMessage(@RequestBody String requestBody) {
-        System.out.println("Received request body: " + requestBody); // Log request body
-        try {
-            zaloService.processMessage(requestBody);
-            return ResponseEntity.ok("Message processed successfully");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error processing the message: " + e.getMessage());
-        }
+        // Đây là nơi nhận tin nhắn từ Zalo OA (có thể bỏ qua việc xử lý nội dung nếu không cần thiết)
+        // Chỉ cần trả về HTTP 200 OK mà không làm gì thêm
+        return ResponseEntity.ok("OK");  // Trả về HTTP 200 OK mà không cần xử lý thêm
     }
 }
