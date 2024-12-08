@@ -1,10 +1,10 @@
-package com.example.API_OA;
+package com.example.API_Zalo_OA;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class ApiOaApplicationTests {
+class ApiZaloOaApplicationTests {
 
 	@Test
 	void contextLoads() {

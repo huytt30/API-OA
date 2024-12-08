@@ -1,7 +1,7 @@
-package com.example.API_OA.controller;
+package com.example.API_Zalo_OA.controller;
 
 
-import com.example.API_OA.service.ZaloService;
+import com.example.API_Zalo_OA.service.ZaloService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
