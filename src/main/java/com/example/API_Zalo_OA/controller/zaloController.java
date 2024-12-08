@@ -19,8 +19,9 @@ public class zaloController {
     }
 
     @GetMapping
-    public ResponseEntity<String> verifyWebhook(@RequestParam("challenge") String challenge) {
-        return ResponseEntity.ok(challenge);  // Trả về challenge để xác thực webhook
+    public ResponseEntity<String> verifyWebhook(@RequestParam(value = "challenge", required = true) String challenge) {
+        // Đảm bảo trả về đúng giá trị của 'challenge' để Zalo OA xác thực webhook
+        return ResponseEntity.ok(challenge);
     }
 
     @PostMapping
