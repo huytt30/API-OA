@@ -2,7 +2,10 @@ package com.example.API_Zalo_OA.service;
 
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.HttpEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -14,31 +17,35 @@ public class ZaloService {
     @Value("${zalo.access_token}")
     private String accessToken;
 
-    // Phương thức xử lý tin nhắn người dùng
-    public void processMessage(String requestBody) throws Exception {
-        JSONObject jsonRequest = new JSONObject(requestBody);
+    public void processMessage(String requestBody) {
+        try {
+            // Chuyển đổi requestBody thành JSONObject
+            JSONObject jsonRequest = new JSONObject(requestBody);
 
-        // Kiểm tra nếu người dùng nhắn tin với từ khóa "wifi"
-        String userMessage = jsonRequest.getString("message");
-        if (userMessage.equalsIgnoreCase("wifi")) {
-            // Sinh mã code ngẫu nhiên
-            String code = generateCode();
+            // Lấy tin nhắn từ người dùng
+            String userMessage = jsonRequest.optString("message", "").trim();
 
-            // Gửi mã code lại cho người dùng
-            sendMessageToUser(jsonRequest.getString("sender_id"), code);
-        } else {
-            // Nếu tin nhắn không phải "wifi", có thể xử lý các tin nhắn khác ở đây
-            sendMessageToUser(jsonRequest.getString("sender_id"), "Sorry, I didn't understand that.");
+            // Kiểm tra nếu người dùng nhắn tin với từ khóa "wifi"
+            if ("wifi".equalsIgnoreCase(userMessage)) {
+                // Sinh mã code ngẫu nhiên
+                String code = generateCode();
+
+                // Gửi mã code lại cho người dùng
+                sendMessageToUser(jsonRequest.getString("sender_id"), code);
+            }
+        } catch (Exception e) {
+            // Log lỗi và thông báo nếu có lỗi trong quá trình xử lý
+            System.err.println("Error processing message: " + e.getMessage());
         }
     }
 
-    // Phương thức sinh mã code ngẫu nhiên
     private String generateCode() {
         return "CODE" + (int) (Math.random() * 10000);  // Sinh mã ngẫu nhiên
     }
 
-    // Phương thức gửi tin nhắn cho người dùng
-    private void sendMessageToUser(String userId, String message) throws Exception {
+    private static final RestTemplate restTemplate = new RestTemplate();  // Để tái sử dụng
+
+    private void sendMessageToUser(String userId, String message) {
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("recipient", new JSONObject().put("user_id", userId));
         jsonObject.put("message", new JSONObject().put("text", message));
@@ -49,14 +56,15 @@ public class ZaloService {
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<String> entity = new HttpEntity<>(jsonObject.toString(), headers);
 
-        RestTemplate restTemplate = new RestTemplate();
         try {
-            // Gửi yêu cầu POST tới API Zalo
-            restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
+            // Gửi POST request và nhận phản hồi
+            String response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class).getBody();
+
+            // Log phản hồi từ Zalo OA (hoặc xử lý nếu cần)
+            System.out.println("Response from Zalo API: " + response);
         } catch (Exception e) {
-            // Nếu có lỗi, log lỗi và ném ra Exception
-            System.err.println("Error sending message to user: " + e.getMessage());
-            throw new Exception("Error sending message to user", e);
+            // Log lỗi nếu có vấn đề với việc gọi API Zalo
+            System.err.println("Error sending message to Zalo API: " + e.getMessage());
         }
     }
 }
