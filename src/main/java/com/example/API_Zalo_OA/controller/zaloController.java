@@ -12,16 +12,32 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/webhook")
 public class zaloController {
 
-    @GetMapping
-    public ResponseEntity<String> verifyWebhook(@RequestParam(value = "challenge", required = true) String challenge) {
-        // Trả lại giá trị challenge để Zalo OA xác thực Webhook
-        return ResponseEntity.ok(challenge);  // Trả về chính xác giá trị 'challenge' mà Zalo OA gửi đến
+    private  ZaloService zaloService;
+
+    @Autowired
+    public zaloController(ZaloService zaloService) {
+        this.zaloService = zaloService;
     }
 
+    // Xử lý yêu cầu GET cho việc xác thực webhook từ Zalo (thường có tham số "challenge")
+    @GetMapping
+    public ResponseEntity<String> verifyWebhook(@RequestParam(value = "challenge", required = true) String challenge) {
+        // Đảm bảo trả về giá trị của 'challenge' để Zalo OA xác thực webhook
+        return ResponseEntity.ok(challenge);
+    }
+
+    // Xử lý yêu cầu POST để nhận và xử lý tin nhắn từ Zalo
     @PostMapping
     public ResponseEntity<String> handleIncomingMessage(@RequestBody String requestBody) {
-        // Đây là nơi nhận tin nhắn từ Zalo OA (có thể bỏ qua việc xử lý nội dung nếu không cần thiết)
-        // Chỉ cần trả về HTTP 200 OK mà không làm gì thêm
-        return ResponseEntity.ok("OK");  // Trả về HTTP 200 OK mà không cần xử lý thêm
+        System.out.println("Received request body: " + requestBody); // Log request body
+        try {
+            // Gọi service để xử lý tin nhắn
+            zaloService.processMessage(requestBody);
+            return ResponseEntity.ok("Message processed successfully");
+        } catch (Exception e) {
+            // Xử lý lỗi và trả về mã lỗi 500 nếu có sự cố
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error processing the message: " + e.getMessage());
+        }
     }
 }
