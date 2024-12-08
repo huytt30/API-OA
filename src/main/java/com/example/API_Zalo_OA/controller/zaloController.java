@@ -3,6 +3,7 @@ package com.example.API_Zalo_OA.controller;
 
 import com.example.API_Zalo_OA.service.ZaloService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -25,7 +26,14 @@ public class zaloController {
     }
 
     @PostMapping
-    public void handleIncomingMessage(@RequestBody String requestBody) {
-        zaloService.processMessage(requestBody);
+    public ResponseEntity<String> handleIncomingMessage(@RequestBody String requestBody) {
+        System.out.println("Received request body: " + requestBody); // Log request body
+        try {
+            zaloService.processMessage(requestBody);
+            return ResponseEntity.ok("Message processed successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error processing the message: " + e.getMessage());
+        }
     }
 }
