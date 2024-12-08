@@ -19,8 +19,8 @@ public class zaloController {
     }
 
     @GetMapping
-    public ResponseEntity<String> getWebhookInfo() {
-        return ResponseEntity.ok("Webhook expects POST requests.");
+    public ResponseEntity<String> verifyWebhook(@RequestParam("challenge") String challenge) {
+        return ResponseEntity.ok(challenge);  // Trả về challenge để xác thực webhook
     }
 
     @PostMapping
