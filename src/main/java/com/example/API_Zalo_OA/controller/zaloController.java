@@ -12,17 +12,10 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/webhook")
 public class zaloController {
 
-    private final ZaloService zaloService;
-
-    @Autowired
-    public zaloController(ZaloService zaloService) {
-        this.zaloService = zaloService;
-    }
-
-    @PostMapping
+    @GetMapping
     public ResponseEntity<String> verifyWebhook(@RequestParam(value = "challenge", required = true) String challenge) {
-        // Đảm bảo trả về đúng giá trị của 'challenge' để Zalo OA xác thực webhook
-        return ResponseEntity.ok(challenge);
+        // Trả lại giá trị challenge để Zalo OA xác thực Webhook
+        return ResponseEntity.ok(challenge);  // Trả về chính xác giá trị 'challenge' mà Zalo OA gửi đến
     }
 
     @PostMapping
