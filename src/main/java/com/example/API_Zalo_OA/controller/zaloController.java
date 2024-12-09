@@ -45,11 +45,12 @@ public class zaloController {
 
             // Add Content-Length header to ensure no chunked transfer encoding
             HttpHeaders headers = new HttpHeaders();
-            headers.set("Content-Length", String.valueOf(jsonResponse.length()));
+            headers.set("Content-Type", "application/json");  // Set Content-Type to application/json
+            headers.set("Content-Length", String.valueOf(jsonResponse.length()));  // Set Content-Length header
 
-            // Return the response as a JSON object with Content-Length header
+            // Return the response as a JSON object with Content-Type and Content-Length header
             return ResponseEntity.ok()
-                    .headers(headers) // Add Content-Length header
+                    .headers(headers) // Add Content-Type and Content-Length header
                     .body(jsonResponse); // Return response body as a String
 
         } catch (Exception e) {
@@ -58,6 +59,7 @@ public class zaloController {
             errorResponse.put("error", "Error processing the message: " + e.getMessage());
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .headers(headers) // Add Content-Type for error response as well
                     .body(errorResponse.toString());  // Ensure JSON is returned as String
         }
     }
