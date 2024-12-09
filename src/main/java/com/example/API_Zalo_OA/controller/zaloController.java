@@ -27,20 +27,18 @@ public class zaloController {
         return ResponseEntity.ok(challenge);
     }
 
+    // Xử lý yêu cầu POST để nhận và xử lý tin nhắn từ Zalo
     @PostMapping
-    public ResponseEntity<JSONObject> handleIncomingMessage(@RequestBody String requestBody) {
-        System.out.println("Mã code: " + requestBody);
+    public ResponseEntity<String> handleIncomingMessage(@RequestBody String requestBody) {
+        System.out.println("Received request body: " + requestBody); // Log request body
         try {
-            // Call the service to process the message and get the generated code in JSON format
-            JSONObject responseJson = zaloService.processMessage(requestBody);
-            System.out.println("Mã code: " + responseJson.toString());  // Log the JSON response
-
-            // Return the generated code wrapped in a JSON response
-            return ResponseEntity.ok(responseJson);
+            // Gọi service để xử lý tin nhắn
+            zaloService.processMessage(requestBody);
+            return ResponseEntity.ok("Message processed successfully");
         } catch (Exception e) {
-            // Handle errors and return an HTTP 500 with an error message
+            // Xử lý lỗi và trả về mã lỗi 500 nếu có sự cố
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new JSONObject().put("error", "Error processing the message: " + e.getMessage()));
+                    .body("Error processing the message: " + e.getMessage());
         }
     }
 }
