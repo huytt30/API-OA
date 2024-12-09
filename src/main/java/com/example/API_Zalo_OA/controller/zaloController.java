@@ -29,6 +29,7 @@ public class zaloController {
 
     @PostMapping
     public ResponseEntity<JSONObject> handleIncomingMessage(@RequestBody String requestBody) {
+        System.out.println("Mã code: " + requestBody);
         try {
             // Call the service to process the message and get the generated code in JSON format
             JSONObject responseJson = zaloService.processMessage(requestBody);
