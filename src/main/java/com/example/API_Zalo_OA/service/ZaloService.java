@@ -23,32 +23,21 @@ public class ZaloService {
 
     public String processMessage(String requestBody) {
         try {
-            // Parse the incoming JSON request body
             JSONObject jsonRequest = new JSONObject(requestBody);
-            JSONObject message = jsonRequest.optJSONObject("message");
-            String userMessage = message != null ? message.optString("text", "").trim() : "";
+            String userMessage = jsonRequest.optString("message", "").trim();
 
-            // Check if the message contains "wifi"
             if ("wifi".equalsIgnoreCase(userMessage)) {
-                String code = generateCode();  // Generate a code
-                JSONObject sender = jsonRequest.optJSONObject("sender");
-                if (sender != null) {
-                    String senderId = sender.optString("id", "");  // Extract sender ID
-                    sendMessageToUser(senderId, code);  // Send code back to the sender
-                }
-                return code;  // Return the generated code
+                String code = generateCode();
+//                sendMessageToUser(jsonRequest.getString("sender_id"), code);
+                return code;
             }
-
-            // If message does not contain "wifi", return an empty response or custom message
-            return "No action taken";
         } catch (Exception e) {
             System.err.println("Error processing message: " + e.getMessage());
-            return "";  // Return empty if there's an error
         }
+        return requestBody;
     }
 
     private String generateCode() {
-        // Generate a random code (e.g., CODE1234)
         return "CODE" + (int) (Math.random() * 10000);
     }
 
@@ -76,6 +65,8 @@ public class ZaloService {
         }
     }
 }
+
+
 
 
 

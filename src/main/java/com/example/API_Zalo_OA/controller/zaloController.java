@@ -30,17 +30,14 @@ public class zaloController {
     public ResponseEntity<String> handleIncomingMessage(@RequestBody String requestBody) {
         System.out.println("Received request body: " + requestBody); // Log request body
         try {
-            // Call service to process the message and get the generated code
-            String generatedCode = zaloService.processMessage(requestBody);
-
-            // Return the generated code as the response body
-            return ResponseEntity.ok(generatedCode);  // Returning the generated code as response
+            // Gọi service để xử lý tin nhắn
+            String code = zaloService.processMessage(requestBody);
+            return ResponseEntity.ok(code);
         } catch (Exception e) {
-            // Log and return error code if there's an issue processing the message
-            System.err.println("Error processing the message: " + e.getMessage());
+            // Xử lý lỗi và trả về mã lỗi 500 nếu có sự cố
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error processing the message: " + e.getMessage());
         }
     }
-
+}
 }
