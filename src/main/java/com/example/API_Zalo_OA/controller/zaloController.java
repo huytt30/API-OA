@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+
 @RestController
 @RequestMapping("/webhook")
 public class zaloController {
@@ -31,37 +32,49 @@ public class zaloController {
     // Xử lý yêu cầu POST để nhận và xử lý tin nhắn từ Zalo
     @PostMapping
     public ResponseEntity<String> handleIncomingMessage(@RequestBody String requestBody) {
-        HttpHeaders headers = null;
+        HttpHeaders headers = new HttpHeaders();  // Đảm bảo header được xử lý
+
         try {
             // Call the service to process the message and get the generated code as a plain string
             String response = zaloService.processMessage(requestBody);
             System.out.println("Mã code: " + response);  // Log the response (code)
 
-            // Create a JSONObject to return the response as JSON
+            // Nếu không có mã code hoặc tin nhắn không hợp lệ, trả về lỗi
+            if (response.isEmpty()) {
+                JSONObject errorResponse = new JSONObject();
+                errorResponse.put("error", "No code generated or invalid message");
+
+                // Thiết lập header cho phản hồi lỗi
+                headers.set("Content-Type", "application/json");
+
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)  // Trả về mã lỗi 400 nếu không có mã code
+                        .headers(headers)  // Thêm header vào phản hồi
+                        .body(errorResponse.toString());
+            }
+
+            // Tạo JSON phản hồi với mã code
             JSONObject responseJson = new JSONObject();
-            responseJson.put("code", response);  // Add the response (code) to the JSON
+            responseJson.put("code", response);  // Thêm mã code vào JSON
 
-            // Convert JSONObject to String
-            String jsonResponse = responseJson.toString();
+            // Thiết lập header cho phản hồi thành công
+            headers.set("Content-Type", "application/json");
 
-            // Add Content-Length header to ensure no chunked transfer encoding
-            headers = new HttpHeaders();
-            headers.set("Content-Type", "application/json");  // Set Content-Type to application/json
-            headers.set("Content-Length", String.valueOf(jsonResponse.length()));  // Set Content-Length header
-
-            // Return the response as a JSON object with Content-Type and Content-Length header
+            // Trả về phản hồi dưới dạng JSON với header
             return ResponseEntity.ok()
-                    .headers(headers) // Add Content-Type and Content-Length header
-                    .body(jsonResponse); // Return response body as a String
+                    .headers(headers)  // Thêm header vào phản hồi
+                    .body(responseJson.toString());  // Trả về mã code dưới dạng JSON
 
         } catch (Exception e) {
-            // Handle errors and return an HTTP 500 with an error message
+            // Xử lý lỗi và trả về HTTP 500 nếu có lỗi trong quá trình xử lý
             JSONObject errorResponse = new JSONObject();
             errorResponse.put("error", "Error processing the message: " + e.getMessage());
 
+            // Thiết lập header cho phản hồi lỗi
+            headers.set("Content-Type", "application/json");
+
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .headers(headers) // Add Content-Type for error response as well
-                    .body(errorResponse.toString());  // Ensure JSON is returned as String
+                    .headers(headers)  // Thêm header vào phản hồi lỗi
+                    .body(errorResponse.toString());  // Đảm bảo trả về JSON cho lỗi
         }
     }
 }
