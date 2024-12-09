@@ -28,7 +28,7 @@ public class zaloController {
 
     @PostMapping
     public ResponseEntity<String> handleIncomingMessage(@RequestBody String requestBody) {
-        System.out.println("Received request body: " + requestBody); // Log request body
+        // Log request body
         try {
             // Gọi service để xử lý tin nhắn
             String code = zaloService.processMessage(requestBody);
