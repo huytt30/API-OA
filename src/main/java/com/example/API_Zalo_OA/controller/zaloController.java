@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/webhook")
 public class zaloController {
 
-    private  ZaloService zaloService;
+    private ZaloService zaloService;
 
     @Autowired
     public zaloController(ZaloService zaloService) {
@@ -29,18 +29,24 @@ public class zaloController {
 
     // Xử lý yêu cầu POST để nhận và xử lý tin nhắn từ Zalo
     @PostMapping
-    public ResponseEntity<String> handleIncomingMessage(@RequestBody String requestBody) {
+    public ResponseEntity<JSONObject> handleIncomingMessage(@RequestBody String requestBody) {
         try {
             // Call the service to process the message and get the generated code as a plain string
             String response = zaloService.processMessage(requestBody);
             System.out.println("Mã code: " + response);  // Log the response (code)
 
-            // Return the generated code as a plain text response
-            return ResponseEntity.ok(response);
+            // Create a JSONObject to return the response as JSON
+            JSONObject responseJson = new JSONObject();
+            responseJson.put("code", response);  // Add the response (code) to the JSON
+
+            // Return the response as a JSON object
+            return ResponseEntity.ok(responseJson);
         } catch (Exception e) {
             // Handle errors and return an HTTP 500 with an error message
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error processing the message: " + e.getMessage());
+            JSONObject errorResponse = new JSONObject();
+            errorResponse.put("error", "Error processing the message: " + e.getMessage());
+
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
     }
 }
