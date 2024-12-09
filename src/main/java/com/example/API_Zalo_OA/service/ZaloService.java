@@ -62,7 +62,7 @@ public class ZaloService {
 
         // Send request to Zalo API
         try {
-            String url = zaloApiUrl + "/v2.0/oa/message";
+            String url = zaloApiUrl;
             JSONObject payload = new JSONObject();
             payload.put("recipient", new JSONObject().put("user_id", userId));  // User ID of the recipient
             payload.put("message", new JSONObject().put("text", message));
