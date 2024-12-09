@@ -31,6 +31,7 @@ public class zaloController {
     // Xử lý yêu cầu POST để nhận và xử lý tin nhắn từ Zalo
     @PostMapping
     public ResponseEntity<String> handleIncomingMessage(@RequestBody String requestBody) {
+        HttpHeaders headers = null;
         try {
             // Call the service to process the message and get the generated code as a plain string
             String response = zaloService.processMessage(requestBody);
@@ -44,7 +45,7 @@ public class zaloController {
             String jsonResponse = responseJson.toString();
 
             // Add Content-Length header to ensure no chunked transfer encoding
-            HttpHeaders headers = new HttpHeaders();
+            headers = new HttpHeaders();
             headers.set("Content-Type", "application/json");  // Set Content-Type to application/json
             headers.set("Content-Length", String.valueOf(jsonResponse.length()));  // Set Content-Length header
 
