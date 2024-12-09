@@ -30,7 +30,7 @@ public class ZaloService {
 
             // Check if the message is "wifi"
             if ("wifi".equalsIgnoreCase(userMessage)) {
-                code = generateCode();  // Generate code if message is "wifi"
+                code = "generateCode()";  // Generate code if message is "wifi"
             }
         } catch (Exception e) {
             System.err.println("Error processing message: " + e.getMessage());
