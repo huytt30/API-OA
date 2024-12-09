@@ -23,26 +23,33 @@ public class ZaloService {
 
     public String processMessage(String requestBody) {
         try {
+            // Parse the incoming JSON request body
             JSONObject jsonRequest = new JSONObject(requestBody);
-            String userMessage = jsonRequest.optString("message", "").trim();
+            JSONObject message = jsonRequest.optJSONObject("message");
+            String userMessage = message != null ? message.optString("text", "").trim() : "";
 
+            // Check if the message contains "wifi"
             if ("wifi".equalsIgnoreCase(userMessage)) {
-                // Generate the code
-                String code = generateCode();
-                sendMessageToUser(jsonRequest.getString("sender_id"), code);
-                return code;  // Return the generated code to the controller
+                String code = generateCode();  // Generate a code
+                JSONObject sender = jsonRequest.optJSONObject("sender");
+                if (sender != null) {
+                    String senderId = sender.optString("id", "");  // Extract sender ID
+                    sendMessageToUser(senderId, code);  // Send code back to the sender
+                }
+                return code;  // Return the generated code
             }
 
-            // If no matching message, return a default or empty code
-            return "";
+            // If message does not contain "wifi", return an empty response or custom message
+            return "No action taken";
         } catch (Exception e) {
             System.err.println("Error processing message: " + e.getMessage());
-            return "";  // Return empty or error code
+            return "";  // Return empty if there's an error
         }
     }
 
     private String generateCode() {
-        return "CODE" + (int) (Math.random() * 10000);  // Generate random code
+        // Generate a random code (e.g., CODE1234)
+        return "CODE" + (int) (Math.random() * 10000);
     }
 
     private void sendMessageToUser(String userId, String message) {
@@ -69,5 +76,6 @@ public class ZaloService {
         }
     }
 }
+
 
 
