@@ -2,6 +2,7 @@ package com.example.API_Zalo_OA.controller;
 
 
 import com.example.API_Zalo_OA.service.ZaloService;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,17 +28,18 @@ public class zaloController {
     }
 
     @PostMapping
-    public ResponseEntity<String> handleIncomingMessage(@RequestBody String requestBody) {
-         // Log request body
+    public ResponseEntity<JSONObject> handleIncomingMessage(@RequestBody String requestBody) {
         try {
-            // Gọi service để xử lý tin nhắn
-            String code = zaloService.processMessage(requestBody);
-            System.out.println("mã code: " + code);
-            return ResponseEntity.ok(code);
+            // Call the service to process the message and get the generated code in JSON format
+            JSONObject responseJson = zaloService.processMessage(requestBody);
+            System.out.println("Mã code: " + responseJson.toString());  // Log the JSON response
+
+            // Return the generated code wrapped in a JSON response
+            return ResponseEntity.ok(responseJson);
         } catch (Exception e) {
-            // Xử lý lỗi và trả về mã lỗi 500 nếu có sự cố
+            // Handle errors and return an HTTP 500 with an error message
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error processing the message: " + e.getMessage());
+                    .body(new JSONObject().put("error", "Error processing the message: " + e.getMessage()));
         }
     }
 }

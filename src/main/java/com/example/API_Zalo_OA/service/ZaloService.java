@@ -21,8 +21,8 @@ public class ZaloService {
 
     private static final RestTemplate restTemplate = new RestTemplate();
 
-    public String processMessage(String requestBody) {
-        String code = "";  // Declare the code variable outside the try block
+    public JSONObject processMessage(String requestBody) {
+        JSONObject responseJson = new JSONObject();  // Create a JSONObject to hold the response
 
         try {
             JSONObject jsonRequest = new JSONObject(requestBody);
@@ -30,19 +30,25 @@ public class ZaloService {
 
             // Check if the message is "wifi"
             if ("wifi".equalsIgnoreCase(userMessage)) {
-                code = "generateCode()";  // Generate code if message is "wifi"
+                String code = generateCode();  // Generate code if message is "wifi"
+                responseJson.put("code", code);  // Put the generated code in the response JSON
+            } else {
+                responseJson.put("code", "");  // If message is not "wifi", return an empty code
             }
         } catch (Exception e) {
             System.err.println("Error processing message: " + e.getMessage());
+            responseJson.put("error", "Error processing message");  // Add an error field in case of failure
         }
 
-        // Return the code (either generated or empty if no "wifi" message)
-        return code;
+        // Return the JSON response
+        return responseJson;
     }
 
     private String generateCode() {
+        // Generate a random code (e.g., CODE1234)
         return "CODE" + (int) (Math.random() * 10000);
     }
+
 
 //    private void sendMessageToUser(String userId, String message) {
 //        JSONObject jsonObject = new JSONObject();
