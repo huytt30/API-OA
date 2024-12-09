@@ -21,22 +21,28 @@ public class ZaloService {
 
     private static final RestTemplate restTemplate = new RestTemplate();
 
-    public void processMessage(String requestBody) {
+    public String processMessage(String requestBody) {
         try {
             JSONObject jsonRequest = new JSONObject(requestBody);
             String userMessage = jsonRequest.optString("message", "").trim();
 
             if ("wifi".equalsIgnoreCase(userMessage)) {
+                // Generate the code
                 String code = generateCode();
                 sendMessageToUser(jsonRequest.getString("sender_id"), code);
+                return code;  // Return the generated code to the controller
             }
+
+            // If no matching message, return a default or empty code
+            return "";
         } catch (Exception e) {
             System.err.println("Error processing message: " + e.getMessage());
+            return "";  // Return empty or error code
         }
     }
 
     private String generateCode() {
-        return "CODE" + (int) (Math.random() * 10000);
+        return "CODE" + (int) (Math.random() * 10000);  // Generate random code
     }
 
     private void sendMessageToUser(String userId, String message) {
@@ -63,4 +69,5 @@ public class ZaloService {
         }
     }
 }
+
 
