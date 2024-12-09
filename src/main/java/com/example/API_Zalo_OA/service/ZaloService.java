@@ -22,19 +22,22 @@ public class ZaloService {
     private static final RestTemplate restTemplate = new RestTemplate();
 
     public String processMessage(String requestBody) {
+        String code = "";  // Declare the code variable outside the try block
+
         try {
             JSONObject jsonRequest = new JSONObject(requestBody);
             String userMessage = jsonRequest.optString("message", "").trim();
 
+            // Check if the message is "wifi"
             if ("wifi".equalsIgnoreCase(userMessage)) {
-                String code = generateCode();
-//                sendMessageToUser(jsonRequest.getString("sender_id"), code);
-                return code;
+                code = generateCode();  // Generate code if message is "wifi"
             }
         } catch (Exception e) {
             System.err.println("Error processing message: " + e.getMessage());
         }
-        return requestBody;
+
+        // Return the code (either generated or empty if no "wifi" message)
+        return code;
     }
 
     private String generateCode() {
