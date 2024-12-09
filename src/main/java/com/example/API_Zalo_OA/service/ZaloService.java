@@ -12,19 +12,31 @@ public class ZaloService {
 
     @Value("${zalo.access_token}")
     private String accessToken;
+    
 
     public JSONObject processMessage(String requestBody) {
         JSONObject responseJson = new JSONObject();  // Create a JSONObject to hold the response
 
         try {
+            // Parse the request body
             JSONObject jsonRequest = new JSONObject(requestBody);
-            String userMessage = jsonRequest.optString("message", "").trim();
 
-            if ("wifi".equalsIgnoreCase(userMessage)) {
-                String code = generateCode();  // Generate code if message is "wifi"
-                responseJson.put("code", code);  // Put the generated code in the response JSON
+            // Get the "message" object from the incoming request
+            JSONObject message = jsonRequest.optJSONObject("message");
+
+            // Check if the message object is present and contains a "text" field
+            if (message != null) {
+                String userMessage = message.optString("text", "").trim(); // Get the "text" field value
+
+                // If the "text" field is "wifi", generate and return a code
+                if ("wifi".equalsIgnoreCase(userMessage)) {
+                    String code = generateCode();  // Generate code if message is "wifi"
+                    responseJson.put("code", code);  // Put the generated code in the response JSON
+                } else {
+                    responseJson.put("code", "");  // If the message is not "wifi", return an empty code
+                }
             } else {
-                responseJson.put("code", "");  // If message is not "wifi", return an empty code
+                responseJson.put("error", "Invalid message structure");  // If message field is missing
             }
         } catch (Exception e) {
             System.err.println("Error processing message: " + e.getMessage());
@@ -39,7 +51,6 @@ public class ZaloService {
         // Generate a random code (e.g., CODE1234)
         return "CODE" + (int) (Math.random() * 10000);
     }
-
 //    private void sendMessageToUser(String userId, String message) {
 //        JSONObject jsonObject = new JSONObject();
 //        jsonObject.put("recipient", new JSONObject().put("user_id", userId));
