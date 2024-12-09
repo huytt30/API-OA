@@ -28,10 +28,11 @@ public class zaloController {
 
     @PostMapping
     public ResponseEntity<String> handleIncomingMessage(@RequestBody String requestBody) {
-        // Log request body
+         // Log request body
         try {
             // Gọi service để xử lý tin nhắn
             String code = zaloService.processMessage(requestBody);
+            System.out.println("mã code: " + code);
             return ResponseEntity.ok(code);
         } catch (Exception e) {
             // Xử lý lỗi và trả về mã lỗi 500 nếu có sự cố
