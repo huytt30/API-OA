@@ -33,7 +33,7 @@ public class zaloController {
         try {
             // Call the service to process the message and get the generated code in JSON format
             JSONObject responseJson = zaloService.processMessage(requestBody);
-            System.out.println("Mã code: " + responseJson.toString());  // Log the JSON response
+            System.out.println("Mã code: " + responseJson);  // Log the JSON response
 
             // Return the generated code wrapped in a JSON response
             return ResponseEntity.ok(responseJson);
