@@ -46,7 +46,7 @@ public class ZaloService {
 
                     // Prepare message with the code
                     JSONObject responseMessage = new JSONObject();
-                    responseMessage.put("text", "Mã code của bạn: " + code);
+                    responseMessage.put("text", "Mã code: " + code);
 
                     // Add recipient and message to the response
                     response.put("recipient", recipient);
