@@ -13,6 +13,12 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
+import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.*;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+
 @Service
 public class ZaloService {
 
@@ -22,60 +28,120 @@ public class ZaloService {
     @Value("${zalo.access_token}")
     private String accessToken;
 
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    /**
+     * Xử lý tin nhắn nhận được từ người dùng và gửi phản hồi nếu cần.
+     *
+     * @param requestBody Nội dung JSON từ webhook gửi đến.
+     * @return JSON phản hồi hoặc null nếu không cần phản hồi.
+     */
     public JSONObject processMessage(String requestBody) {
         try {
-            // Parse the request body
+            // Parse request body
             JSONObject jsonRequest = new JSONObject(requestBody);
 
-            // Get the "message" object from the incoming request
+            // Lấy thông tin tin nhắn từ request
             JSONObject message = jsonRequest.optJSONObject("message");
 
-            // Check if the message object is present and contains a "text" field
             if (message != null) {
-                String userMessage = message.optString("text", "").trim(); // Get the "text" field value
+                String userMessage = message.optString("text", "").trim();
+                String userId = jsonRequest.getJSONObject("sender").getString("id");
 
-                // If the "text" field is "wifi", generate and return a code
+                // Kiểm tra nếu tin nhắn là "wifi"
                 if ("wifi".equalsIgnoreCase(userMessage)) {
-                    String code = generateCode();  // Generate code if message is "wifi"
+                    String code = generateCode();
+                    String responseText = "Thông tin Wi-Fi của bạn là: " + code;
 
-                    // Create the JSON response
-                    JSONObject response = new JSONObject();
+                    // Gửi tin nhắn phản hồi
+                    boolean success = sendMessageToUser(userId, responseText);
 
-                    // Prepare recipient (recipient is the user we are sending the message to)
-                    JSONObject recipient = new JSONObject();
-                    recipient.put("user_id", jsonRequest.getJSONObject("recipient").getString("id"));
-
-                    // Prepare the message
-                    JSONObject responseMessage = new JSONObject();
-                    responseMessage.put("text", " " + code);
-
-                    // Add recipient and message to the response
-                    response.put("recipient", recipient);
-                    response.put("message", responseMessage);
-
-                    return response;  // Return the response as a valid JSON object
+                    if (success) {
+                        return createSuccessResponse(responseText);
+                    } else {
+                        return createErrorResponse("Gửi tin nhắn thất bại");
+                    }
                 } else {
-                    return createErrorResponse("Message not recognized");  // If the message is not "wifi", return an error
+                    return createErrorResponse("Tin nhắn không được hỗ trợ");
                 }
             } else {
-                return createErrorResponse("Invalid message structure");  // If there's no message field, return an error
+                return createErrorResponse("Cấu trúc tin nhắn không hợp lệ");
             }
         } catch (Exception e) {
             System.err.println("Error processing message: " + e.getMessage());
-            return createErrorResponse("Error processing message");  // Return an error response if an exception occurs
+            return createErrorResponse("Lỗi xử lý tin nhắn");
         }
     }
 
-    private String generateCode() {
-        // Generate a random code (e.g., CODE1234)
-        return "CODE" + (int) (Math.random() * 10000);  // Example code like CODE1234
+    /**
+     * Gửi tin nhắn đến người dùng qua Zalo API.
+     *
+     * @param userId      ID của người dùng nhận tin nhắn.
+     * @param messageText Nội dung tin nhắn.
+     * @return true nếu gửi thành công, false nếu thất bại.
+     */
+    public boolean sendMessageToUser(String userId, String messageText) {
+        try {
+            // Tạo body của request
+            JSONObject requestBody = new JSONObject();
+            JSONObject recipient = new JSONObject();
+            recipient.put("user_id", userId);
+
+            JSONObject message = new JSONObject();
+            message.put("text", messageText);
+
+            requestBody.put("recipient", recipient);
+            requestBody.put("message", message);
+
+            // Tạo headers với access token
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("access_token", accessToken);
+
+            // Gửi request POST đến Zalo API
+            HttpEntity<String> entity = new HttpEntity<>(requestBody.toString(), headers);
+            ResponseEntity<String> response = restTemplate.exchange(zaloApiUrl, HttpMethod.POST, entity, String.class);
+
+            // Kiểm tra nếu gửi thành công (status code 200)
+            return response.getStatusCode().is2xxSuccessful();
+        } catch (Exception e) {
+            System.err.println("Error sending message: " + e.getMessage());
+            return false;
+        }
     }
 
+    /**
+     * Tạo mã code ngẫu nhiên.
+     *
+     * @return Mã code dạng "CODE1234".
+     */
+    private String generateCode() {
+        return "CODE" + (int) (Math.random() * 10000);
+    }
+
+    /**
+     * Tạo phản hồi thành công.
+     *
+     * @param message Nội dung phản hồi.
+     * @return JSON phản hồi thành công.
+     */
+    private JSONObject createSuccessResponse(String message) {
+        JSONObject response = new JSONObject();
+        response.put("status", "success");
+        response.put("message", message);
+        return response;
+    }
+
+    /**
+     * Tạo phản hồi lỗi.
+     *
+     * @param errorMessage Nội dung lỗi.
+     * @return JSON phản hồi lỗi.
+     */
     private JSONObject createErrorResponse(String errorMessage) {
-        // Helper method to create error response
         JSONObject errorResponse = new JSONObject();
-        errorResponse.put("error", errorMessage);
+        errorResponse.put("status", "error");
+        errorResponse.put("message", errorMessage);
         return errorResponse;
     }
 }
-
