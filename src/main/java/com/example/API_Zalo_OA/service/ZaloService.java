@@ -7,68 +7,99 @@ import org.springframework.web.client.RestTemplate;
 
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 
 @Service
 public class ZaloService {
 
-    @Value("${zalo.api.url}")
-    private String zaloApiUrl;
+    @Value("${zalo.app_id}")
+    private String appId;
 
-    @Value("${zalo.access_token}")
+    @Value("${zalo.app_secret}")
+    private String appSecret;
+
+    @Value("${zalo.redirect_uri}")
+    private String redirectUri;
+
+    @Value("${zalo.api_url}")
+    private String apiUrl;
+
+    // Để lưu access token, bạn có thể lưu trong bộ nhớ, cache hoặc database
     private String accessToken;
 
     public JSONObject processMessage(String requestBody) {
         try {
             // Parse the request body
             JSONObject jsonRequest = new JSONObject(requestBody);
-
-            // Get the "message" object from the incoming request
             JSONObject message = jsonRequest.optJSONObject("message");
 
-            // Check if the message object is present and contains a "text" field
             if (message != null) {
                 String userMessage = message.optString("text", "").trim(); // Get the "text" field value
 
-                // If the "text" field is "wifi", generate and return a code
+                // Nếu tin nhắn là "wifi", gửi mã code
                 if ("wifi".equalsIgnoreCase(userMessage)) {
-                    String code = generateCode();  // Generate code if message is "wifi"
-
-                    // Create the JSON response
+                    String code = generateCode();
                     JSONObject response = new JSONObject();
-
-                    // Prepare recipient (recipient is the user we are sending the message to)
                     JSONObject recipient = new JSONObject();
                     recipient.put("user_id", jsonRequest.getJSONObject("recipient").getString("id"));
 
-                    // Prepare the message
                     JSONObject responseMessage = new JSONObject();
-                    responseMessage.put("text", " " + code);
+                    responseMessage.put("text", "Mã code: " + code);
 
-                    // Add recipient and message to the response
                     response.put("recipient", recipient);
                     response.put("message", responseMessage);
 
-                    return response;  // Return the response as a valid JSON object
+                    return response;
                 } else {
-                    return createErrorResponse("Message not recognized");  // If the message is not "wifi", return an error
+                    return createErrorResponse("Message not recognized");
                 }
             } else {
-                return createErrorResponse("Invalid message structure");  // If there's no message field, return an error
+                return createErrorResponse("Invalid message structure");
             }
         } catch (Exception e) {
-            System.err.println("Error processing message: " + e.getMessage());
-            return createErrorResponse("Error processing message");  // Return an error response if an exception occurs
+            return createErrorResponse("Error processing message: " + e.getMessage());
+        }
+    }
+
+    // Lấy access token bằng authorization code
+    public String getAccessToken(String authorizationCode) {
+        try {
+            String url = apiUrl + "?app_id=" + appId + "&app_secret=" + appSecret +
+                    "&code=" + authorizationCode + "&redirect_uri=" + redirectUri;
+
+            // Sử dụng HttpClient để gửi yêu cầu POST
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/x-www-form-urlencoded")
+                    .POST(HttpRequest.BodyPublishers.noBody())
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            JSONObject jsonResponse = new JSONObject(response.body());
+
+            if (jsonResponse.has("access_token")) {
+                accessToken = jsonResponse.getString("access_token");
+                return accessToken;
+            } else {
+                return "Error: Unable to get access token";
+            }
+
+        } catch (Exception e) {
+            return "Error: " + e.getMessage();
         }
     }
 
     private String generateCode() {
-        // Generate a random code (e.g., CODE1234)
         return "CODE" + (int) (Math.random() * 10000);  // Example code like CODE1234
     }
 
     private JSONObject createErrorResponse(String errorMessage) {
-        // Helper method to create error response
         JSONObject errorResponse = new JSONObject();
         errorResponse.put("error", errorMessage);
         return errorResponse;
