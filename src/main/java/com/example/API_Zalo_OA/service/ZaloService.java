@@ -9,7 +9,6 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-
 @Service
 public class ZaloService {
 
@@ -19,7 +18,7 @@ public class ZaloService {
     @Value("${zalo.access_token}")
     private String accessToken;
 
-    public String processMessage(String requestBody) {
+    public JSONObject processMessage(String requestBody) {
         try {
             // Parse the request body
             JSONObject jsonRequest = new JSONObject(requestBody);
@@ -34,16 +33,35 @@ public class ZaloService {
                 // If the "text" field is "wifi", generate and return a code
                 if ("wifi".equalsIgnoreCase(userMessage)) {
                     String code = generateCode();  // Generate code if message is "wifi"
-                    return code;  // Return the generated code as a plain string
+                    // Create response JSON with recipient and message
+                    JSONObject response = new JSONObject();
+
+                    // Get the user_id from the incoming request
+                    JSONObject sender = jsonRequest.optJSONObject("sender");
+                    String userId = sender != null ? sender.optString("id", "") : "";
+
+                    // Prepare recipient
+                    JSONObject recipient = new JSONObject();
+                    recipient.put("user_id", userId);
+
+                    // Prepare message with the code
+                    JSONObject responseMessage = new JSONObject();
+                    responseMessage.put("text", "Mã code của bạn: " + code);
+
+                    // Add recipient and message to the response
+                    response.put("recipient", recipient);
+                    response.put("message", responseMessage);
+
+                    return response;  // Return the response JSON
                 } else {
-                    return "";  // If the message is not "wifi", return an empty string
+                    return createErrorResponse("Message not recognized");  // Return error response for unrecognized message
                 }
             } else {
-                return "Invalid message structure";  // If message field is missing
+                return createErrorResponse("Invalid message structure");  // Return error response if message is missing
             }
         } catch (Exception e) {
             System.err.println("Error processing message: " + e.getMessage());
-            return "Error processing message";  // Return error message if an exception occurs
+            return createErrorResponse("Error processing message");  // Return error response if an exception occurs
         }
     }
 
@@ -51,8 +69,12 @@ public class ZaloService {
         // Generate a random code (e.g., CODE1234)
         return "CODE" + (int) (Math.random() * 10000);  // Example code like CODE1234
     }
+
+    private JSONObject createErrorResponse(String errorMessage) {
+        // Helper method to create error response
+        JSONObject errorResponse = new JSONObject();
+        errorResponse.put("error", errorMessage);
+        return errorResponse;
+    }
 }
-
-
-
 

@@ -35,15 +35,11 @@ public class zaloController {
         HttpHeaders headers = null;
         try {
             // Call the service to process the message and get the generated code as a plain string
-            String response = zaloService.processMessage(requestBody);
-            System.out.println("Mã code: " + response);  // Log the response (code)
-
-            // Create a JSONObject to return the response as JSON
-            JSONObject responseJson = new JSONObject();
-            responseJson.put("code", response);  // Add the response (code) to the JSON
+            JSONObject response = zaloService.processMessage(requestBody);
+            System.out.println("Response: " + response);  // Log the response (code)
 
             // Convert JSONObject to String
-            String jsonResponse = responseJson.toString();
+            String jsonResponse = response.toString();
 
             // Add Content-Length header to ensure no chunked transfer encoding
             headers = new HttpHeaders();
