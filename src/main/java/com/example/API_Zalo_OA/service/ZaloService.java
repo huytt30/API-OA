@@ -33,35 +33,32 @@ public class ZaloService {
                 // If the "text" field is "wifi", generate and return a code
                 if ("wifi".equalsIgnoreCase(userMessage)) {
                     String code = generateCode();  // Generate code if message is "wifi"
-                    // Create response JSON with recipient and message
+
+                    // Create the JSON response
                     JSONObject response = new JSONObject();
 
-                    // Get the user_id from the incoming request
-                    JSONObject sender = jsonRequest.optJSONObject("sender");
-                    String userId = sender != null ? sender.optString("id", "") : "";
-
-                    // Prepare recipient
+                    // Prepare recipient (recipient is the user we are sending the message to)
                     JSONObject recipient = new JSONObject();
-                    recipient.put("user_id", userId);
+                    recipient.put("user_id", jsonRequest.getJSONObject("recipient").getString("id"));
 
-                    // Prepare message with the code
+                    // Prepare the message
                     JSONObject responseMessage = new JSONObject();
-                    responseMessage.put("text", "Mã code: " + code);
+                    responseMessage.put("text", "Mã code của bạn: " + code);
 
                     // Add recipient and message to the response
                     response.put("recipient", recipient);
                     response.put("message", responseMessage);
 
-                    return response;  // Return the response JSON
+                    return response;  // Return the response as a valid JSON object
                 } else {
-                    return createErrorResponse("Message not recognized");  // Return error response for unrecognized message
+                    return createErrorResponse("Message not recognized");  // If the message is not "wifi", return an error
                 }
             } else {
-                return createErrorResponse("Invalid message structure");  // Return error response if message is missing
+                return createErrorResponse("Invalid message structure");  // If there's no message field, return an error
             }
         } catch (Exception e) {
             System.err.println("Error processing message: " + e.getMessage());
-            return createErrorResponse("Error processing message");  // Return error response if an exception occurs
+            return createErrorResponse("Error processing message");  // Return an error response if an exception occurs
         }
     }
 

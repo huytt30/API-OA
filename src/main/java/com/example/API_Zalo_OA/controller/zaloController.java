@@ -32,24 +32,20 @@ public class zaloController {
     // Xử lý yêu cầu POST để nhận và xử lý tin nhắn từ Zalo
     @PostMapping
     public ResponseEntity<String> handleIncomingMessage(@RequestBody String requestBody) {
-        HttpHeaders headers = null;
+        HttpHeaders headers = new HttpHeaders();
         try {
-            // Call the service to process the message and get the generated code as a plain string
+            // Call the service to process the message and get the response
             JSONObject response = zaloService.processMessage(requestBody);
-            System.out.println("Response: " + response);  // Log the response (code)
+            String jsonResponse = response.toString();  // Convert JSONObject to String
 
-            // Convert JSONObject to String
-            String jsonResponse = response.toString();
+            // Set the correct Content-Type and Content-Length headers
+            headers.set("Content-Type", "application/json");
+            headers.set("Content-Length", String.valueOf(jsonResponse.length()));
 
-            // Add Content-Length header to ensure no chunked transfer encoding
-            headers = new HttpHeaders();
-            headers.set("Content-Type", "application/json");  // Set Content-Type to application/json
-            headers.set("Content-Length", String.valueOf(jsonResponse.length()));  // Set Content-Length header
-
-            // Return the response as a JSON object with Content-Type and Content-Length header
+            // Return the response as a JSON object with the headers
             return ResponseEntity.ok()
-                    .headers(headers) // Add Content-Type and Content-Length header
-                    .body(jsonResponse); // Return response body as a String
+                    .headers(headers)
+                    .body(jsonResponse); // Return the response as a JSON body
 
         } catch (Exception e) {
             // Handle errors and return an HTTP 500 with an error message
@@ -57,9 +53,10 @@ public class zaloController {
             errorResponse.put("error", "Error processing the message: " + e.getMessage());
 
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .headers(headers) // Add Content-Type for error response as well
-                    .body(errorResponse.toString());  // Ensure JSON is returned as String
+                    .headers(headers)
+                    .body(errorResponse.toString());  // Ensure error response is returned in JSON format
         }
     }
 }
+
 
