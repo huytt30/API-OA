@@ -57,7 +57,7 @@ public class ZaloService {
                     boolean success = sendMessageToUser(userId, responseText);
 
                     if (success) {
-                        return createSuccessResponse(responseText);
+                        return createDynamicSuccessResponse(userId, responseText);
                     } else {
                         return createErrorResponse("Gửi tin nhắn thất bại");
                     }
@@ -102,6 +102,9 @@ public class ZaloService {
             HttpEntity<String> entity = new HttpEntity<>(requestBody.toString(), headers);
             ResponseEntity<String> response = restTemplate.exchange(zaloApiUrl, HttpMethod.POST, entity, String.class);
 
+            // Log kết quả phản hồi
+            System.out.println("Zalo API Response: " + response.getBody());
+
             // Kiểm tra nếu gửi thành công (status code 200)
             return response.getStatusCode().is2xxSuccessful();
         } catch (Exception e) {
@@ -120,15 +123,23 @@ public class ZaloService {
     }
 
     /**
-     * Tạo phản hồi thành công.
+     * Tạo phản hồi thành công cho Dynamic OA.
      *
+     * @param userId  ID của người dùng.
      * @param message Nội dung phản hồi.
      * @return JSON phản hồi thành công.
      */
-    private JSONObject createSuccessResponse(String message) {
+    private JSONObject createDynamicSuccessResponse(String userId, String message) {
         JSONObject response = new JSONObject();
-        response.put("status", "success");
-        response.put("message", message);
+        JSONObject recipient = new JSONObject();
+        recipient.put("user_id", userId);
+
+        JSONObject messageObj = new JSONObject();
+        messageObj.put("text", message);
+
+        response.put("recipient", recipient);
+        response.put("message", messageObj);
+
         return response;
     }
 
