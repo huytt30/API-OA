@@ -57,7 +57,7 @@ public class ZaloService {
                     boolean success = sendMessageToUser(userId, responseText);
 
                     if (success) {
-                        return createDynamicSuccessResponse(userId, responseText);
+                        return createDynamicSuccessResponse(responseText);
                     } else {
                         return createErrorResponse("Gửi tin nhắn thất bại");
                     }
@@ -123,23 +123,14 @@ public class ZaloService {
     }
 
     /**
-     * Tạo phản hồi thành công cho Dynamic OA.
+     * Tạo phản hồi thành công cho Dynamic OA với nội dung chỉ chứa text.
      *
-     * @param userId  ID của người dùng.
      * @param message Nội dung phản hồi.
-     * @return JSON phản hồi thành công.
+     * @return JSON phản hồi thành công chỉ chứa text.
      */
-    private JSONObject createDynamicSuccessResponse(String userId, String message) {
+    private JSONObject createDynamicSuccessResponse(String message) {
         JSONObject response = new JSONObject();
-        JSONObject recipient = new JSONObject();
-        recipient.put("user_id", userId);
-
-        JSONObject messageObj = new JSONObject();
-        messageObj.put("text", message);
-
-        response.put("recipient", recipient);
-        response.put("message", messageObj);
-
+        response.put("text", message);
         return response;
     }
 
