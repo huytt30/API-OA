@@ -1,23 +1,19 @@
 package com.example.API_Zalo_OA.service;
 
+import com.example.API_Zalo_OA.model.EStatus;
+import com.example.API_Zalo_OA.model.voucher;
+import com.example.API_Zalo_OA.repository.VoucherRepository;
 import org.json.JSONObject;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URL;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-
-import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.List;
+import java.util.Random;
 
 @Service
 public class ZaloService {
@@ -29,6 +25,9 @@ public class ZaloService {
     private String accessToken;
 
     private final RestTemplate restTemplate = new RestTemplate();
+
+    @Autowired
+    private VoucherRepository voucherRepository;
 
     /**
      * Xử lý tin nhắn nhận được từ người dùng và gửi phản hồi nếu cần.
@@ -50,17 +49,16 @@ public class ZaloService {
 
                 // Kiểm tra nếu tin nhắn là "wifi"
                 if ("wifi".equalsIgnoreCase(userMessage)) {
-                    String code = generateCode();
-                    String responseText = "Thông tin Wi-Fi của bạn là: " + code;
+                    // Lấy mã từ database có trạng thái SUCCESS
+                    String code = generateCodeFromDatabase();
 
-                    // Gửi tin nhắn phản hồi
-                    boolean success = sendMessageToUser(userId, responseText);
-
-                    if (success) {
-                        return createDynamicSuccessResponse(responseText);
-                    } else {
-                        return createErrorResponse("Gửi tin nhắn thất bại");
+                    if (code == null) {
+                        return createErrorResponse("Không có mã Wi-Fi nào với trạng thái SUCCESS trong cơ sở dữ liệu");
                     }
+
+                    // Trả về phản hồi với mã code
+                    String responseText = "Thông tin Wi-Fi của bạn là: " + code;
+                    return createDynamicSuccessResponse(responseText);
                 } else {
                     return createErrorResponse("Tin nhắn không được hỗ trợ");
                 }
@@ -71,6 +69,28 @@ public class ZaloService {
             System.err.println("Error processing message: " + e.getMessage());
             return createErrorResponse("Lỗi xử lý tin nhắn");
         }
+    }
+
+    /**
+     * Lấy mã từ cơ sở dữ liệu có trạng thái SUCCESS.
+     *
+     * @return Mã code từ cơ sở dữ liệu.
+     */
+    private String generateCodeFromDatabase() {
+        // Truy vấn tất cả các voucher có trạng thái SUCCESS
+        List<voucher> successfulVouchers = voucherRepository.findByStatus(EStatus.SUCCESS);
+
+        // Kiểm tra nếu có mã nào với trạng thái SUCCESS
+        if (successfulVouchers.isEmpty()) {
+            return null;  // Không có mã nào với trạng thái SUCCESS
+        }
+
+        // Chọn ngẫu nhiên một mã từ danh sách
+        Random random = new Random();
+        voucher selectedVoucher = successfulVouchers.get(random.nextInt(successfulVouchers.size()));
+
+        // Trả về mã code từ voucher đã chọn
+        return selectedVoucher.getCode().toString();
     }
 
     /**
@@ -111,15 +131,6 @@ public class ZaloService {
             System.err.println("Error sending message: " + e.getMessage());
             return false;
         }
-    }
-
-    /**
-     * Tạo mã code ngẫu nhiên.
-     *
-     * @return Mã code dạng "CODE1234".
-     */
-    private String generateCode() {
-        return "CODE" + (int) (Math.random() * 10000);
     }
 
     /**

@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-
 @RestController
 @RequestMapping("/webhook")
 public class zaloController {
@@ -31,7 +30,7 @@ public class zaloController {
      */
     @GetMapping
     public ResponseEntity<String> verifyWebhook(@RequestParam(value = "challenge") String challenge) {
-        return ResponseEntity.ok(challenge);
+        return ResponseEntity.ok(challenge);  // Xác thực webhook từ Zalo
     }
 
     /**
@@ -43,17 +42,17 @@ public class zaloController {
     @PostMapping
     public ResponseEntity<String> handleIncomingMessage(@RequestBody String requestBody) {
         try {
-            // Gọi service để xử lý tin nhắn và nhận phản hồi
+            // Gọi service để xử lý tin nhắn và nhận phản hồi JSON
             JSONObject response = zaloService.processMessage(requestBody);
 
             // Tạo headers
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
-            // Trả về phản hồi thành công
+            // Trả về phản hồi chứa mã code (không gửi tin nhắn)
             return ResponseEntity.ok()
                     .headers(headers)
-                    .body(response.toString());
+                    .body(response.toString());  // Trả về JSON phản hồi chứa mã code
 
         } catch (Exception e) {
             // Xử lý lỗi và trả về phản hồi lỗi JSON
@@ -63,6 +62,7 @@ public class zaloController {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
 
+            // Trả về phản hồi lỗi nếu có ngoại lệ
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .headers(headers)
                     .body(errorResponse.toString());
