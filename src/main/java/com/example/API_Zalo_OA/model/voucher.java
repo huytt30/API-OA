@@ -15,8 +15,12 @@ public class voucher {
 
     private String code;
 
-    @Enumerated(EnumType.STRING)  // Đảm bảo ánh xạ đúng kiểu enum (STRING hoặc ORDINAL)
-    private EStatus status;
+    // Đảm bảo ánh xạ đúng kiểu enum (STRING hoặc ORDINAL)
+    private String status;
+
+    public voucher() {
+
+    }
 
     public Long getId() {
         return id;
@@ -34,20 +38,17 @@ public class voucher {
         this.code = code;
     }
 
-    public EStatus getStatus() {
+    public String getStatus() {
         return status;
     }
 
-    public void setStatus(EStatus status) {
+    public void setStatus(String status) {
         this.status = status;
     }
 
-    public voucher(Long id, String code, EStatus status) {
+    public voucher(Long id, String code, String status) {
         this.id = id;
         this.code = code;
         this.status = status;
-    }
-
-    public voucher() {
     }
 }

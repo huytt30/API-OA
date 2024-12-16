@@ -1,6 +1,5 @@
 package com.example.API_Zalo_OA.service;
 
-import com.example.API_Zalo_OA.model.EStatus;
 import com.example.API_Zalo_OA.model.voucher;
 import com.example.API_Zalo_OA.repository.VoucherRepository;
 import org.json.JSONObject;
@@ -67,7 +66,7 @@ public class ZaloService {
             }
         } catch (Exception e) {
             System.err.println("Error processing message: " + e.getMessage());
-            return createErrorResponse("Lỗi xử lý tin nhắn");
+            return createErrorResponse("Lỗi xử lý tin nhắn: " + e.getMessage());
         }
     }
 
@@ -78,7 +77,7 @@ public class ZaloService {
      */
     private String generateCodeFromDatabase() {
         // Truy vấn tất cả các voucher có trạng thái SUCCESS
-        List<voucher> successfulVouchers = voucherRepository.findByStatus(EStatus.SUCCESS);
+        List<voucher> successfulVouchers = voucherRepository.findByStatus("SUCCESS");
 
         // Kiểm tra nếu có mã nào với trạng thái SUCCESS
         if (successfulVouchers.isEmpty()) {
@@ -90,7 +89,7 @@ public class ZaloService {
         voucher selectedVoucher = successfulVouchers.get(random.nextInt(successfulVouchers.size()));
 
         // Trả về mã code từ voucher đã chọn
-        return selectedVoucher.getCode().toString();
+        return selectedVoucher.getCode();
     }
 
     /**
